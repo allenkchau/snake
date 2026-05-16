@@ -11,18 +11,24 @@
 #ifndef GAME_H
 #define GAME_H
 
-
+#include <deque>
 #include "position.h"
 
 
 class Game {
     private:
+        // dimensions of our game grid
         const int width;
         const int height;
-        Position player_position;
+        // sequence of positions representing the snake
+        std::deque<Position> snake;
+        // direction we move in based on pad key
         Position move_direction;
         int points;
 
+        Position food_position;
+
+        // whether game has ended or not
         bool running;
 
     public:
@@ -38,6 +44,8 @@ class Game {
         void update();
         // render new game in terminal
         void draw();
+        // randomly get a position on the grid
+        Position getRandomPosition();
 };
 
 
