@@ -12,6 +12,7 @@
 #define GAME_H
 
 #include <deque>
+#include <random>
 #include "position.h"
 
 
@@ -31,6 +32,9 @@ class Game {
         // whether game has ended or not
         bool running;
 
+        // random number generator
+        std::mt19937 generator;
+
     public:
         // constructor
         Game();
@@ -46,6 +50,15 @@ class Game {
         void draw();
         // randomly get a position on the grid
         Position getRandomPosition();
+
+        // check if we are out of bounds
+        bool isOutOfBounds(const Position& pos) const;
+
+        bool isSelfCollision(const Position& pos, bool will_grow) const;
+
+        void placeFood();
+
+        bool isEatingFood(const Position& pos) const;
 };
 
 
