@@ -3,6 +3,7 @@ CXX = g++
 # -Iinclude tells the compiler to search the include/ folder for header files
 
 CXXFLAGS = -std=c++17 -Wall -Wextra -Iinclude
+LDFLAGS = -lncurses
 
 SRC = src/main.cpp src/game.cpp
 
@@ -12,7 +13,7 @@ all: $(TARGET)
 
 $(TARGET): $(SRC)
 
-	$(CXX) $(CXXFLAGS) $(SRC) -o $(TARGET)
+	$(CXX) $(CXXFLAGS) $(SRC) -o $(TARGET) $(LDFLAGS)
 
 run: $(TARGET)
 

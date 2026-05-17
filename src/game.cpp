@@ -5,6 +5,7 @@
 #include <random>
 #include <algorithm>
 #include <deque>
+#include <ncurses.h>
 #include "game.h"
 #include "position.h"
 
@@ -15,7 +16,7 @@ bool hitsSnake(const std::deque<Position>& snake, const Position& pos) {
 }
 
 bool Game::isOutOfBounds(const Position& pos) const {
-    return pos.row < 0 || pos.row >= height || pos.col < 0 || pos.col >= width;
+    return pos.row < 1 || pos.row >= height - 1 || pos.col < 1 || pos.col >= width - 1;
 }
 
 bool Game::isSelfCollision(const Position& pos, bool will_grow) const {
@@ -44,8 +45,8 @@ bool Game::isEatingFood(const Position& pos) const {
 Position Game::getRandomPosition() {
 
     // define distribution range
-    std::uniform_int_distribution<> distr_height(0, this->height - 1); 
-    std::uniform_int_distribution<> distr_width(0, this->width - 1); 
+    std::uniform_int_distribution<> distr_height(1, this->height - 2); 
+    std::uniform_int_distribution<> distr_width(1, this->width - 2); 
     
     int random_row = distr_height(generator);
     int random_col = distr_width(generator);
@@ -78,33 +79,42 @@ Game::Game()
 }
 
 void Game::handleInput() {
-    char command;
-    std::cin >> command;
-    // normalize to lower case
-    command = static_cast<char>(std::tolower(static_cast<unsigned char>(command)));
-    switch(command) {
+    int command = getch();
+    if (command == ERR) {
+        return;
+    }
+
+    switch (command) {
         case 'w':
+        case 'W':
+        case KEY_UP:
             move_direction.row = -1;
             move_direction.col = 0;
             break;
         case 'a':
+        case 'A':
+        case KEY_LEFT:
             move_direction.row = 0;
             move_direction.col = -1;
             break;
         case 's':
+        case 'S':
+        case KEY_DOWN:
             move_direction.row = 1;
             move_direction.col = 0;
             break;
         case 'd':
+        case 'D':
+        case KEY_RIGHT:
             move_direction.row = 0;
             move_direction.col = 1;
             break;
         case 'q':
+        case 'Q':
             running = false;
             break;
-        // if the key isn't valid we just quit the game
         default:
-            std::cout << "USE THE WASD PAD TO MOVE OR q TO QUIT THE GAME!\n";
+            break;
     }
 }
 
@@ -139,10 +149,9 @@ void Game::update() {
 
         if (static_cast<int>(snake.size()) == height * width) {
             running = false;
-            std::cout << "YOU WON THE GAME!!\n";
             return;
         }
-
+        // randomly place food for the next turn
         placeFood();
     } else {
         snake.pop_back();
@@ -150,29 +159,44 @@ void Game::update() {
 }
 
 void Game::draw() {
+    clear();
     for (int i = 0; i < height; i++) {
         for (int j = 0; j < width; j++) {
-            if (i == snake.front().row && j == snake.front().col) {
-                std::cout << "O";
+            // draw the barrier
+            if (i == 0 || j == 0 || i == height - 1 || j == width - 1) {
+                mvaddch(i, j, '#');
+            }
+            else if (i == snake.front().row && j == snake.front().col) {
+                mvaddch(i, j, 'O');
             } else if (i == food_position.row && j == food_position.col) {
-                std::cout << "*";
+                mvaddch(i, j, '*');
             } else if (hitsSnake(snake, Position{i, j})) {
-                std::cout << "o";
+                mvaddch(i, j, 'o');
             } else {
-                std::cout << ".";
+                mvaddch(i, j, ' ');
             }
         }
-        std::cout << '\n';
     }
-    std::cout << "\nENTER YOUR MOVE: \n";
+    mvprintw(height, 0, "Score: %d  Controls: WASD/Arrows, Q to quit", points);
+    refresh();
 }
 
 // game loop
 void Game::run() {
+    initscr();
+    cbreak();
+    noecho();
+    keypad(stdscr, true);
+    nodelay(stdscr, true);
+    curs_set(0);
+
     while (running) {
-        draw();
         handleInput();
         update();
+        draw();
+        napms(120);
     }
+
+    endwin();
     std::cout << "THE GAME HAS ENDED. YOU GOT " << points << " POINTS!\n";
 }

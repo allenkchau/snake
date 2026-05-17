@@ -4,8 +4,7 @@ AI Usage: None
 
 
 Game loop:
-while game is running
-    read input
-    update game state
-    draw screen
+while game is running read input, update game state, and draw screen.
+
+To play, run `make run`.
 
